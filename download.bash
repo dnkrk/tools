@@ -1,16 +1,5 @@
 #!/usr/bin/env bash
-
-# This script divides a download into multiple concurrent chunks and downloads
-# them all at once. When used correctly, can absolutely destroy any throttling
-# or rate caps. It will only work on HTTP and FTP servers which support the
-# "Range" header. Linux is amazing.
-#
-# Normal download:    13GB file with a cap at 80KB/s, ETA 47h20m
-# This script:        xxm to download, xxs to concatenate all 1322 chunks
-# Result:             xx% faster than a normal download would be.
-#
-# Don't forget to donate or otherwise support the server you're pulling stuff
-# from, after all, those caps are there for a reason.
+# See README.md for instructions and usage notes.
 
 
 # Initialize
@@ -27,6 +16,12 @@ length=$(wget $url --spider -o - | grep Length | awk '{print $2}')
 chunk_size=10485760  # 10MB
 ((chunks=length/chunk_size))
 ((last_chunk=length%chunk_size))
+
+if [ -z $length ];
+then
+    echo "Invalid URL, remote file dos not exist."
+    exit 1
+fi
 
 decoded=$(echo -e ${url//%/\\x})
 final_filename=${decoded##*/}
@@ -67,6 +62,7 @@ if [[ -f "$filename" && ( $(wc -c < "$filename") == $last_chunk) ]];
 then
     echo "$filename already fully downloaded, skipping."
 else
+    rm $filename
     wget -O "$filename" --start-pos=$last_offset $url&
 fi
 
@@ -92,12 +88,13 @@ echo "Validating file..."
 
 if [[ ( $(wc -c < "$outfile") != $length) ]];
 then
-    echo "Something went wrong, the created file is of invalid size."
-    echo "$(wc -c < $outfile)B vs the expected $length"
+    echo "Something went wrong, the created file is of invalid size:"
+    echo "$(wc -c < $outfile) vs the expected $length"
+    echo "It's possible a number of chunks failed to download, check inside tmp_download and try running the script again."
     rm $outfile
     exit 1
 else
-    mv $outfile $final_filename
+    mv $outfile "$final_filename"
     rm -rf tmp_download
     ((mins=SECONDS/60))
     ((secs=SECONDS%60))
