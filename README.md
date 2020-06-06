@@ -19,7 +19,7 @@ from, after all, those caps are there for a reason.
 
 #### Note
 For especially large files, some chunks may fail to download and the separate
-wget calls will start to hang after every 10GB or so. Feel free to kill the
-script with ^C and run it again - fully downloaded chunks will not be touched,
+`wget` calls will start to hang after every 10GB or so. Feel free to kill the
+script with `^C` and run it again - fully downloaded chunks will not be touched,
 so very little progress will be lost. A future version should allow resuming
 partially downloaded chunks as well.
