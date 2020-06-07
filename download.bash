@@ -42,7 +42,7 @@ do
     if [ $block_rem -ne 0 ];
     then
         echo "Chosen chunk size is not a multiple of ulimit block size $blocksize."
-        gxit 1;
+        exit 1;
     fi
 
     if [[ -f "$filename" && ( $(wc -c < "$filename") == $chunk_size) ]];
